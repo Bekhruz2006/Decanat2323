@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Мой профиль - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-body text-center">
+                {% if user.photo %}
+                <img src="{{ user.photo.url }}" class="rounded-circle mb-3" width="150" height="150" alt="Фото">
+                {% else %}
+                <i class="bi bi-person-circle text-muted mb-3" style="font-size: 150px;"></i>
+                {% endif %}
+                <h5>{{ user.get_full_name }}</h5>
+                <p class="text-muted">{{ user.get_role_display }}</p>
+                <p><i class="bi bi-envelope me-1"></i>{{ user.email }}</p>
+            </div>
+        </div>
+
+        <div class="list-group">
+            <a href="#info" class="list-group-item list-group-item-action active">
+                <i class="bi bi-info-circle me-2"></i>Основная информация
+            </a>
+            {% if user.role == 'student' %}
+            <a href="#grades" class="list-group-item list-group-item-action">
+                <i class="bi bi-graph-up me-2"></i>Оценки
+            </a>
+            <a href="#curriculum" class="list-group-item list-group-item-action">
+                <i class="bi bi-book me-2"></i>Учебный план
+            </a>
+            {% elif user.role == 'teacher' %}
+            <a href="#groups" class="list-group-item list-group-item-action">
+                <i class="bi bi-people me-2"></i>Мои группы
+            </a>
+            {% endif %}
+            <a href="{% url 'accounts:edit_profile' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-pencil me-2"></i>Редактировать профиль
+            </a>
+            <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-key me-2"></i>Изменить пароль
+            </a>
+            <a href="{% url 'accounts:change_username' %}" class="list-group-item list-group-item-action">
+                <i class="bi bi-person-badge me-2"></i>Изменить логин
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="card mb-4" id="info">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">ФИО:</dt>
+                    <dd class="col-sm-8">{{ user.get_full_name }}</dd>
+
+                    <dt class="col-sm-4">Логин:</dt>
+                    <dd class="col-sm-8"><code>{{ user.username }}</code></dd>
+
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8">{{ user.email|default:"Не указан" }}</dd>
+
+                    <dt class="col-sm-4">Телефон:</dt>
+                    <dd class="col-sm-8">{{ user.phone|default:"Не указан" }}</dd>
+
+                    <dt class="col-sm-4">Дата рождения:</dt>
+                    <dd class="col-sm-8">{{ user.birth_date|date:"d.m.Y"|default:"Не указана" }}</dd>
+
+                    <dt class="col-sm-4">Адрес:</dt>
+                    <dd class="col-sm-8">{{ user.address|default:"Не указан" }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        {% if user.role == 'student' and student %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i>Информация о студенте</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Номер зачётки:</dt>
+                    <dd class="col-sm-8"><code>{{ student.record_book_number }}</code></dd>
+
+                    <dt class="col-sm-4">Группа:</dt>
+                    <dd class="col-sm-8"><span class="badge bg-info">{{ student.group }}</span></dd>
+
+                    <dt class="col-sm-4">Финансирование:</dt>
+                    <dd class="col-sm-8">
+                        {% if student.financing_type == 'budget' %}
+                            <span class="badge bg-success">Бюджет</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Договор</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Успеваемость</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="display-4 text-primary">{{ profile.average_score|floatformat:2 }}</div>
+                        <small class="text-muted">Средний балл</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="display-4 text-success">{{ profile.total_attendance }}/{{ profile.total_lessons }}</div>
+                        <small class="text-muted">Посещено занятий</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="display-4 text-danger">{{ profile.total_nb }}</div>
+                        <small class="text-muted">Отметок НБ</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4" id="grades">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Последние оценки</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_grades %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Предмет</th>
+                                <th>Оценка</th>
+                                <th>Неделя</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in recent_grades %}
+                            <tr>
+                                <td>{{ grade.date|date:"d.m.Y" }}</td>
+                                <td>{{ grade.subject }}</td>
+                                <td>
+                                    {% if grade.is_nb %}
+                                        <span class="badge bg-danger">НБ</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ grade.score }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>Неделя {{ grade.week_number }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{% url 'journal:grades_by_week' %}" class="btn btn-primary btn-sm">Все оценки</a>
+                {% else %}
+                <p class="text-muted mb-0">Оценок пока нет</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if curriculum %}
+        <div class="card mb-4" id="curriculum">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-book me-2"></i>Учебный план</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ curriculum.name }}</h6>
+                <p class="text-muted">{{ curriculum.specialty }} - Семестр {{ curriculum.semester }}</p>
+                {% if curriculum.curriculum_file %}
+                <a href="{{ curriculum.curriculum_file.url }}" class="btn btn-success btn-sm" download>
+                    <i class="bi bi-download me-1"></i>Скачать учебный план
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% elif user.role == 'teacher' and teacher %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-briefcase me-2"></i>Информация о преподавателе</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Должность:</dt>
+                    <dd class="col-sm-8">{{ teacher.get_position_display }}</dd>
+
+                    <dt class="col-sm-4">Кафедра:</dt>
+                    <dd class="col-sm-8">{{ teacher.department }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4" id="groups">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-people me-2"></i>Доступ к группам</h5>
+            </div>
+            <div class="card-body">
+                {% if group_access %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Группа</th>
+                                <th>Предмет</th>
+                                <th>Доступ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for access in group_access %}
+                            <tr>
+                                <td><span class="badge bg-info">{{ access.group }}</span></td>
+                                <td>{{ access.subject }}</td>
+                                <td>
+                                    {% if access.can_edit %}
+                                        <span class="badge bg-success">Редактирование</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Просмотр</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Доступ к группам не настроен</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

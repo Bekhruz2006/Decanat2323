@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Журнал посещаемости - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-journal-check text-primary me-2"></i>Журнал посещаемости
+        </h1>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'journal:attendance_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i>Отметить посещаемость
+        </a>
+        <a href="{% url 'journal:grade_create' %}" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-1"></i>Выставить оценку
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="date" class="form-label">Дата</label>
+                <input type="date" class="form-control" id="date" name="date" value="{{ current_date }}">
+            </div>
+            <div class="col-md-3">
+                <label for="subject" class="form-label">Предмет</label>
+                <select class="form-select" id="subject" name="subject">
+                    <option value="">Все предметы</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject }}" {% if subject == current_subject %}selected{% endif %}>
+                            {{ subject }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="group" class="form-label">Группа</label>
+                <select class="form-select" id="group" name="group">
+                    <option value="">Все группы</option>
+                    {% for group in groups %}
+                        <option value="{{ group }}" {% if group == current_group %}selected{% endif %}>
+                            {{ group }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="status" class="form-label">Статус</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">Все статусы</option>
+                    <option value="present" {% if current_status == 'present' %}selected{% endif %}>Присутствовал</option>
+                    <option value="absent" {% if current_status == 'absent' %}selected{% endif %}>Отсутствовал</option>
+                    <option value="late" {% if current_status == 'late' %}selected{% endif %}>Опоздал</option>
+                    <option value="excused" {% if current_status == 'excused' %}selected{% endif %}>Уваж. причина</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Фильтр
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Дата</th>
+                        <th>Студент</th>
+                        <th>Группа</th>
+                        <th>Предмет</th>
+                        <th>Статус</th>
+                        <th>Примечания</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td>{{ attendance.date|date:"d.m.Y" }}</td>
+                        <td>
+                            <a href="{% url 'decanat:student_detail' attendance.student.pk %}">
+                                {{ attendance.student.last_name }} {{ attendance.student.first_name }}
+                            </a>
+                        </td>
+                        <td><span class="badge bg-info">{{ attendance.student.group }}</span></td>
+                        <td>{{ attendance.subject }}</td>
+                        <td>
+                            {% if attendance.status == 'present' %}
+                                <span class="badge bg-success">Присутствовал</span>
+                            {% elif attendance.status == 'absent' %}
+                                <span class="badge bg-danger">Отсутствовал</span>
+                            {% elif attendance.status == 'late' %}
+                                <span class="badge bg-warning text-dark">Опоздал</span>
+                            {% else %}
+                                <span class="badge bg-info">Уваж. причина</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ attendance.notes|truncatewords:5 }}</small></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Записи не найдены
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

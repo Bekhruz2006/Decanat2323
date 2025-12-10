@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Контакты - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-4">
+            <i class="bi bi-telephone-fill text-primary me-2"></i>Контакты
+        </h1>
+        <p class="lead text-muted">Свяжитесь с нами любым удобным способом</p>
+    </div>
+</div>
+
+<div class="row">
+    {% for contact in contacts %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-building me-2"></i>{{ contact.title }}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if contact.phone %}
+                <div class="mb-3">
+                    <i class="bi bi-telephone-fill text-success me-2"></i>
+                    <strong>Телефон:</strong><br>
+                    <a href="tel:{{ contact.phone }}" class="text-decoration-none ms-4">
+                        {{ contact.phone }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if contact.email %}
+                <div class="mb-3">
+                    <i class="bi bi-envelope-fill text-danger me-2"></i>
+                    <strong>Email:</strong><br>
+                    <a href="mailto:{{ contact.email }}" class="text-decoration-none ms-4">
+                        {{ contact.email }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if contact.telegram %}
+                <div class="mb-3">
+                    <i class="bi bi-telegram text-info me-2"></i>
+                    <strong>Telegram:</strong><br>
+                    <a href="https://t.me/{{ contact.telegram }}" target="_blank" class="text-decoration-none ms-4">
+                        @{{ contact.telegram }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if contact.whatsapp %}
+                <div class="mb-3">
+                    <i class="bi bi-whatsapp text-success me-2"></i>
+                    <strong>WhatsApp:</strong><br>
+                    <a href="https://wa.me/{{ contact.whatsapp }}" target="_blank" class="text-decoration-none ms-4">
+                        {{ contact.whatsapp }}
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if contact.facebook %}
+                <div class="mb-3">
+                    <i class="bi bi-facebook text-primary me-2"></i>
+                    <strong>Facebook:</strong><br>
+                    <a href="{{ contact.facebook }}" target="_blank" class="text-decoration-none ms-4">
+                        Наша страница
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if contact.address %}
+                <div class="mb-3">
+                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                    <strong>Адрес:</strong><br>
+                    <span class="ms-4">{{ contact.address }}</span>
+                </div>
+                {% endif %}
+
+                {% if contact.working_hours %}
+                <div class="mb-0">
+                    <i class="bi bi-clock-fill text-warning me-2"></i>
+                    <strong>Часы работы:</strong><br>
+                    <span class="ms-4">{{ contact.working_hours|linebreaks }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+            <h5>Контактная информация скоро появится</h5>
+            <p class="mb-0">Пожалуйста, зайдите позже</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h5><i class="bi bi-info-circle me-2"></i>Дополнительная информация</h5>
+                <p class="mb-0">Если у вас возникли вопросы, вы можете обратиться к нам через любой из указанных способов связи.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Учебные планы - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-book-fill text-primary me-2"></i>Учебные планы
+        </h1>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label for="specialty" class="form-label">Специальность</label>
+                <select class="form-select" id="specialty" name="specialty">
+                    <option value="">Все специальности</option>
+                    {% for specialty in specialties %}
+                        <option value="{{ specialty }}" {% if specialty == current_specialty %}selected{% endif %}>
+                            {{ specialty }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="semester" class="form-label">Семестр</label>
+                <select class="form-select" id="semester" name="semester">
+                    <option value="">Все семестры</option>
+                    {% for sem in semesters %}
+                        <option value="{{ sem }}" {% if sem|stringformat:"s" == current_semester %}selected{% endif %}>
+                            {{ sem }} семестр
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Найти
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for curriculum in curriculums %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">{{ curriculum.name }}</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Специальность:</dt>
+                    <dd class="col-sm-8">{{ curriculum.specialty }}</dd>
+                    
+                    <dt class="col-sm-4">Семестр:</dt>
+                    <dd class="col-sm-8"><span class="badge bg-info">{{ curriculum.semester }}</span></dd>
+                    
+                    <dt class="col-sm-4">Создан:</dt>
+                    <dd class="col-sm-8">{{ curriculum.created_at|date:"d.m.Y H:i" }}</dd>
+                    
+                    <dt class="col-sm-4">Обновлён:</dt>
+                    <dd class="col-sm-8">{{ curriculum.updated_at|date:"d.m.Y H:i" }}</dd>
+                </dl>
+                
+                {% if curriculum.curriculum_file %}
+                <div class="mt-3">
+                    <a href="{{ curriculum.curriculum_file.url }}" class="btn btn-success btn-sm" download>
+                        <i class="bi bi-download me-1"></i>Скачать учебный план
+                    </a>
+                </div>
+                {% else %}
+                <div class="mt-3">
+                    <span class="text-muted"><i class="bi bi-exclamation-circle me-1"></i>Файл не загружен</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            <p class="mb-0">Учебные планы не найдены</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<nav aria-label="Pagination">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">Первая</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

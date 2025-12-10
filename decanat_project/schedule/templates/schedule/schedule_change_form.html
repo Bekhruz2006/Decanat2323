@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Изменить расписание - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <a href="{% url 'schedule:schedule_list' %}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Назад к расписанию
+        </a>
+        <h1 class="display-5">
+            <i class="bi bi-pencil-square text-warning me-2"></i>Изменить расписание
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.original_lesson.id_for_label }}" class="form-label">
+                            Выберите занятие <span class="text-danger">*</span>
+                        </label>
+                        {{ form.original_lesson }}
+                        {% if form.original_lesson.errors %}
+                        <div class="text-danger small mt-1">{{ form.original_lesson.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <h5 class="mb-3">Новые параметры (заполните только то, что меняется)</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.new_date.id_for_label }}" class="form-label">
+                                Новая дата
+                            </label>
+                            {{ form.new_date }}
+                            {% if form.new_date.errors %}
+                            <div class="text-danger small mt-1">{{ form.new_date.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.new_classroom.id_for_label }}" class="form-label">
+                                Новая аудитория
+                            </label>
+                            {{ form.new_classroom }}
+                            {% if form.new_classroom.errors %}
+                            <div class="text-danger small mt-1">{{ form.new_classroom.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.new_time_slot.id_for_label }}" class="form-label">
+                            Новый временной слот
+                        </label>
+                        {{ form.new_time_slot }}
+                        {% if form.new_time_slot.errors %}
+                        <div class="text-danger small mt-1">{{ form.new_time_slot.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.reason.id_for_label }}" class="form-label">
+                            Причина изменения <span class="text-danger">*</span>
+                        </label>
+                        {{ form.reason }}
+                        {% if form.reason.errors %}
+                        <div class="text-danger small mt-1">{{ form.reason.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_cancelled }}
+                            <label class="form-check-label" for="{{ form.is_cancelled.id_for_label }}">
+                                Занятие отменено
+                            </label>
+                        </div>
+                        {% if form.is_cancelled.errors %}
+                        <div class="text-danger small mt-1">{{ form.is_cancelled.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Изменение будет отображаться в списке последних изменений расписания.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'schedule:schedule_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-1"></i>Отмена
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-check-circle me-1"></i>Сохранить изменение
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-light">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Справка</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Как использовать:</strong></p>
+                <ol class="small">
+                    <li>Выберите занятие из списка</li>
+                    <li>Укажите новые параметры (только те, что меняются)</li>
+                    <li>Опишите причину изменения</li>
+                    <li>Если занятие полностью отменено, установите флажок "Занятие отменено"</li>
+                </ol>
+                <hr>
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-lightbulb me-1"></i>
+                    Необязательно заполнять все поля с новыми параметрами. Укажите только то, что изменилось.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

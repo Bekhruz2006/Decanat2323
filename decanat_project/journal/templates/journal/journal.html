@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load journal_extras %}
+
+{% block title %}Классный журнал - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-journal-text text-primary me-2"></i>Классный журнал
+        </h1>
+        <p class="text-muted mb-0">
+            <i class="bi bi-calendar3 me-1"></i>Учебный год: {{ academic_year }} | 
+            <i class="bi bi-hash me-1"></i>Текущая неделя: {{ current_week }}
+        </p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="group" class="form-label">Группа <span class="text-danger">*</span></label>
+                <select class="form-select" id="group" name="group" required>
+                    <option value="">Выберите группу</option>
+                    {% for group in groups %}
+                        <option value="{{ group }}" {% if group == current_group %}selected{% endif %}>
+                            {{ group }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="subject" class="form-label">Предмет <span class="text-danger">*</span></label>
+                <select class="form-select" id="subject" name="subject" required>
+                    <option value="">Выберите предмет</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject }}" {% if subject == current_subject %}selected{% endif %}>
+                            {{ subject }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="week" class="form-label">Неделя</label>
+                <input type="number" class="form-control" id="week" name="week" 
+                       value="{{ current_week }}" min="1" max="52">
+            </div>
+            <div class="col-md-2">
+                <label for="year" class="form-label">Год</label>
+                <input type="number" class="form-control" id="year" name="year" 
+                       value="{{ current_year }}" min="2020" max="2030">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Показать
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if current_group and current_subject and journal_data %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            Журнал: {{ current_group }} - {{ current_subject }} (Неделя {{ current_week }})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width: 200px;">ФИО студента</th>
+                        <th style="min-width: 100px;">Зачётка</th>
+                        {% for day in "1234567"|make_list %}
+                        <th class="text-center" style="min-width: 80px;">День {{ day }}</th>
+                        {% endfor %}
+                        <th class="text-center">Ср. балл</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student_id, data in journal_data.items %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'decanat:student_detail' data.student.pk %}">
+                                {{ data.student.user.last_name }} {{ data.student.user.first_name }}
+                            </a>
+                        </td>
+                        <td><small>{{ data.student.record_book_number }}</small></td>
+                        {% for day in "1234567"|make_list %}
+                        <td class="text-center">
+                            {% for grade in data.grades %}
+                                {% if grade.date.isoweekday|stringformat:"s" == day %}
+                                    {% if grade.is_nb %}
+                                        <span class="badge bg-danger">НБ</span>
+                                    {% else %}
+                                        <span class="badge bg-success">{{ grade.score }}</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        {% endfor %}
+                        <td class="text-center">
+                            <strong>{{ data.student.profile.average_score|floatformat:1 }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if user.role == 'teacher' or user.role == 'decanat' %}
+        <hr class="my-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Выставить оценки за день</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Выберите дату и выставьте баллы (1-12) или отметки НБ для студентов
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Дата занятия: <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" name="date" id="grade-date" required>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Студент</th>
+                                    <th style="width: 120px;">Баллы (1-12)</th>
+                                    <th style="width: 80px;" class="text-center">НБ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student_id, data in journal_data.items %}
+                                <tr>
+                                    <td>{{ data.student.user.last_name }} {{ data.student.user.first_name|first }}.</td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control form-control-sm" 
+                                               name="score_{{ student_id }}" 
+                                               min="1" max="12" 
+                                               placeholder="1-12">
+                                    </td>
+                                    <td class="text-center">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               name="nb_{{ student_id }}">
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i>Сохранить оценки
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% elif current_group and current_subject %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Оценок за выбранную неделю не найдено
+</div>
+{% else %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Выберите группу и предмет для просмотра журнала
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{% url 'journal:grades_by_week' %}" class="btn btn-outline-primary">
+        <i class="bi bi-list-check me-1"></i>Просмотр оценок по неделям
+    </a>
+</div>
+{% endblock %}

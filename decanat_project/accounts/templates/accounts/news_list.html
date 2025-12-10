@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-4">
+            <i class="bi bi-newspaper text-primary me-2"></i>Новости и объявления
+        </h1>
+        <p class="lead text-muted">Добро пожаловать в систему управления деканата</p>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-people-fill fs-1 mb-2"></i>
+                <h5>Студенты</h5>
+                <a href="{% url 'decanat:student_list' %}" class="btn btn-light btn-sm">Перейти</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-journal-check fs-1 mb-2"></i>
+                <h5>Журнал</h5>
+                <a href="{% url 'journal:journal' %}" class="btn btn-light btn-sm">Перейти</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-calendar-week fs-1 mb-2"></i>
+                <h5>Расписание</h5>
+                <a href="{% url 'schedule:schedule_list' %}" class="btn btn-light btn-sm">Перейти</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <i class="bi bi-book fs-1 mb-2"></i>
+                <h5>Учебные планы</h5>
+                <a href="{% url 'curriculum:curriculum_list' %}" class="btn btn-dark btn-sm">Перейти</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        {% for news in news_list %}
+        <div class="card mb-3 {% if news.is_important %}border-danger{% endif %}">
+            {% if news.is_important %}
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Важное объявление
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ news.title }}</h5>
+                <p class="card-text">{{ news.content|linebreaks }}</p>
+                <div class="text-muted small">
+                    <i class="bi bi-person me-1"></i>{{ news.author.get_full_name }}
+                    <i class="bi bi-calendar ms-3 me-1"></i>{{ news.created_at|date:"d.m.Y H:i" }}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Новостей пока нет
+        </div>
+        {% endfor %}
+
+        {% if is_paginated %}
+        <nav aria-label="Pagination">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                    </li>
+                {% endif %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        {% if user.is_authenticated %}
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Мой профиль</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    {% if user.photo %}
+                    <img src="{{ user.photo.url }}" class="rounded-circle" width="100" height="100" alt="Фото">
+                    {% else %}
+                    <i class="bi bi-person-circle text-muted" style="font-size: 100px;"></i>
+                    {% endif %}
+                </div>
+                <h6 class="text-center">{{ user.get_full_name }}</h6>
+                <p class="text-center text-muted">{{ user.get_role_display }}</p>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-primary w-100">Перейти в профиль</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-door-open fs-1 text-primary mb-3"></i>
+                <h5>Вход в систему</h5>
+                <p class="text-muted">Войдите, чтобы получить доступ ко всем функциям</p>
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary w-100 mb-2">Войти</a>
+                <a href="{% url 'accounts:register' %}" class="btn btn-outline-secondary w-100">Регистрация</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Оценки по неделям - Система Деканата{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-calendar-check text-primary me-2"></i>Оценки по неделям
+        </h1>
+    </div>
+    {% if user.role == 'teacher' or user.role == 'decanat' %}
+    <div class="col-auto">
+        <a href="{% url 'journal:grade_create' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i>Выставить оценку
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label for="week" class="form-label">Неделя</label>
+                <input type="number" class="form-control" id="week" name="week" 
+                       value="{{ current_week }}" min="1" max="52">
+            </div>
+            <div class="col-md-2">
+                <label for="year" class="form-label">Год</label>
+                <input type="number" class="form-control" id="year" name="year" 
+                       value="{{ current_year }}" min="2020" max="2030">
+            </div>
+            {% if user.role != 'student' %}
+            <div class="col-md-3">
+                <label for="group" class="form-label">Группа</label>
+                <select class="form-select" id="group" name="group">
+                    <option value="">Все группы</option>
+                    {% for group in groups %}
+                        <option value="{{ group }}" {% if group == request.GET.group %}selected{% endif %}>
+                            {{ group }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="col-md-3">
+                <label for="subject" class="form-label">Предмет</label>
+                <select class="form-select" id="subject" name="subject">
+                    <option value="">Все предметы</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject }}" {% if subject == request.GET.subject %}selected{% endif %}>
+                            {{ subject }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Найти
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Дата</th>
+                        <th>Студент</th>
+                        {% if user.role != 'student' %}
+                        <th>Группа</th>
+                        {% endif %}
+                        <th>Предмет</th>
+                        <th>Оценка</th>
+                        <th>Неделя</th>
+                        {% if user.role != 'student' %}
+                        <th>Преподаватель</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.date|date:"d.m.Y" }}</td>
+                        <td>
+                            <a href="{% url 'decanat:student_detail' grade.student.pk %}">
+                                {{ grade.student.user.last_name }} {{ grade.student.user.first_name }}
+                            </a>
+                        </td>
+                        {% if user.role != 'student' %}
+                        <td><span class="badge bg-info">{{ grade.student.group }}</span></td>
+                        {% endif %}
+                        <td>{{ grade.subject }}</td>
+                        <td>
+                            {% if grade.is_nb %}
+                                <span class="badge bg-danger">НБ</span>
+                            {% else %}
+                                <span class="badge bg-success fs-6">{{ grade.score }}</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">Неделя {{ grade.week_number }}</small></td>
+                        {% if user.role != 'student' %}
+                        <td>
+                            {% if grade.teacher %}
+                                <small>{{ grade.teacher.user.last_name }}</small>
+                            {% else %}
+                                <small class="text-muted">—</small>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if user.role != 'student' %}7{% else %}5{% endif %}" class="text-center text-muted py-4">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Оценки не найдены
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
